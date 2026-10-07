@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   formatForecast,
   formatBusArrivals,
+  formatPlaces,
   haversineMetres,
 } from "../src/tools.js";
 
@@ -47,6 +48,33 @@ test("formatBusArrivals converts durations to whole minutes", () => {
       { service: "107M", next_min: 1, subsequent_min: null },
     ],
   });
+});
+
+test("formatPlaces keeps whether each place is open now", () => {
+  const origin = { latitude: 1.3115, longitude: 103.8615 };
+  const places = [
+    {
+      displayName: { text: "Open Stall" },
+      rating: 4.5,
+      location: origin,
+      currentOpeningHours: { openNow: true },
+    },
+    {
+      displayName: { text: "Closed Stall" },
+      location: origin,
+      currentOpeningHours: { openNow: false },
+    },
+    { displayName: { text: "No Hours" }, location: origin },
+  ];
+
+  assert.deepEqual(
+    formatPlaces(places, origin).map(({ name, open_now }) => ({ name, open_now })),
+    [
+      { name: "Open Stall", open_now: true },
+      { name: "Closed Stall", open_now: false },
+      { name: "No Hours", open_now: null },
+    ],
+  );
 });
 
 test("haversineMetres measures CT Hub 2 to Lavender MRT at under 600 m", () => {
